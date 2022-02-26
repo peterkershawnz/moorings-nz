@@ -18,19 +18,20 @@ Nextjs will be used for the front-end and Mapbox to display the moorings on a ma
 
 Using Stripe [Connect](https://stripe.com/docs/connect) to handle the payment system.
 
-The below requirement will increase and change as I progress through the project.
+The below requirements will increase and change as I progress through the project.
 
 ## Part A
 
 Design an API to the OpenAPI Specification.
 
 - Using Stoplight to design the API
+  - api-docs.yaml now created
 
 ## Part B
 
 Database Schema Design
 
-- The database to be designed in dbdiagram.io
+- dbdiagram.io used for Postgres
 
 ## Part C
 
@@ -43,6 +44,7 @@ Data reconstruction
 Build the API
 
 - A mooring endpoint to be created and I will use the repository design pattern to allow me to swap put the databases.
+- Using Nodejs
 
 ## Part E
 
