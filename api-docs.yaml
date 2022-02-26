@@ -454,12 +454,13 @@ components:
       description: Mooring and marina berths owners data model
       examples:
         - id: string
-          auth0_account: string
+          auth0: string
           stripe:
             account: string
             status: details_enabled
           moorings:
-            - string
+            - name: string
+              verified: not_verified
           created_date: string
       properties:
         id:
@@ -490,6 +491,8 @@ components:
                 enum:
                   - not_verified
                   - verified
+              id:
+                type: string
         created_date:
           type: string
           readOnly: true
