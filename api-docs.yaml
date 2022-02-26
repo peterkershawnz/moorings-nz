@@ -435,11 +435,8 @@ components:
                 type: number
               readOnly: true
           readOnly: true
-        owner:
-          type: object
-          properties:
-            id:
-              type: string
+        owner_id:
+          type: string
         price:
           type: string
       required:
