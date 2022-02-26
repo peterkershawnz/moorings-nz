@@ -140,6 +140,10 @@ components:
           block_weight: 0
           auth0: string
           status: verified
+          geometry:
+            type: string
+            coordinates:
+              - 0
       description: ""
       properties:
         id:
@@ -183,6 +187,15 @@ components:
           enum:
             - verified
             - toBeVerified
+        geometry:
+          type: object
+          properties:
+            type:
+              type: string
+            coordinates:
+              type: array
+              items:
+                type: number
       required:
         - id
         - number
@@ -194,6 +207,12 @@ components:
         - block_weight
         - auth0
         - status
+    User:
+      title: User
+      type: object
+      properties:
+        id:
+          type: string
   responses:
     "400":
       description: 400 Bad Request
