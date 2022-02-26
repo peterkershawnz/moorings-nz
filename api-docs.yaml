@@ -119,6 +119,55 @@ paths:
       parameters: []
       tags:
         - mooring
+  "/owners/{id}":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Get a single owner
+      tags:
+        - owner
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: "#/components/responses/404"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+      operationId: get-owners-id
+      description: Returns an individual mooring and marina berth owner based on id.
+    post:
+      summary: Create a new owner
+      operationId: post-owners-id
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Owner"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "500":
+          $ref: "#/components/responses/500"
+      description: Create a new owner record.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Owner"
+        description: ""
+      tags:
+        - owner
 components:
   schemas:
     Mooring:
@@ -134,16 +183,16 @@ components:
             bay: string
             island: string
             name: string
-          price: 0
-          type: pole
-          last_inspection: string
+          type_of: pole
+          last_inspection_date: string
           block_weight: 0
-          auth0: string
-          status: verified
           geometry:
             type: string
             coordinates:
               - 0
+          owner:
+            id: string
+          price: string
       description: ""
       properties:
         id:
@@ -169,50 +218,94 @@ components:
               type: string
           required:
             - name
-        price:
-          type: number
-        type:
+        type_of:
           type: string
           enum:
             - pole
             - swing
-        last_inspection:
+        last_inspection_date:
           type: string
         block_weight:
           type: number
-        auth0:
-          type: string
-        status:
-          type: string
-          enum:
-            - verified
-            - toBeVerified
         geometry:
           type: object
+          required:
+            - type
+            - coordinates
           properties:
             type:
               type: string
+              readOnly: true
             coordinates:
               type: array
               items:
                 type: number
+              readOnly: true
+          readOnly: true
+        owner:
+          type: object
+          properties:
+            id:
+              type: string
+        price:
+          type: string
       required:
         - id
         - number
         - max_vessel_length
         - lower_water_depth
-        - price
-        - type
-        - last_inspection
+        - type_of
+        - last_inspection_date
         - block_weight
-        - auth0
-        - status
-    User:
-      title: User
+        - geometry
+    Owner:
+      title: Owner
       type: object
+      description: Mooring and marina berths owners data model
+      examples:
+        - id: string
+          auth0_account: string
+          stripe:
+            account: string
+            status: details_enabled
+          moorings:
+            - string
+          created_date: string
       properties:
         id:
           type: string
+          readOnly: true
+        auth0:
+          type: string
+        stripe:
+          type: object
+          properties:
+            account:
+              type: string
+            status:
+              type: string
+              enum:
+                - details_enabled
+                - charges_enabled
+                - not_started
+        moorings:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              verified:
+                type: string
+                enum:
+                  - not_verified
+                  - verified
+        created_date:
+          type: string
+          readOnly: true
+      required:
+        - auth0
+        - created_date
   responses:
     "400":
       description: 400 Bad Request
@@ -260,3 +353,4 @@ components:
                 readOnly: true
 tags:
   - name: mooring
+  - name: owner
