@@ -1,0 +1,243 @@
+openapi: 3.1.0
+info:
+  title: Moorings API
+  version: "1.0"
+  contact:
+    name: Peter Kershaw
+    email: p.kershaw4@gmail.com
+  description: Moorings and marina berths marketplace API.
+servers:
+  - url: "http://localhost:5001"
+paths:
+  /moorings:
+    get:
+      summary: Get moorings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Mooring"
+        "500":
+          $ref: "#/components/responses/500"
+      operationId: get-moorings
+      description: Returns moorings based on location.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: number
+            examples:
+              example-1:
+                value:
+                  - 173.96973990960998
+                  - -35.217635807305435
+                  - 173.9786233858673
+                  - -35.20473254052142
+          application/xml:
+            schema:
+              type: object
+              properties: {}
+        description: |-
+          Requires the latitude and longitude within the bounds of a rectangle. 
+
+          The format is an array with bottom left coordinates then upper right coordinates [
+              173.96973990960998, -35.217635807305435, 173.9786233858673, -35.20473254052142,
+          ]
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: available
+          description: only show moorings available
+        - schema:
+            type: string
+          in: query
+          name: date
+          description: only show available moorings on this date
+      tags:
+        - mooring
+  "/moorings/{id}":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Get a single mooring
+      tags:
+        - mooring
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mooring"
+        "400":
+          $ref: "#/components/responses/400"
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+      operationId: get-moorings-id
+      description: Returns a individual mooring based on id.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: id
+          description: mooring id
+    patch:
+      summary: Update mooring
+      operationId: patch-moorings-id
+      responses:
+        "200":
+          description: 200 Mooring updated
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          description: 403 Forbidden
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+      description: Update a single mooring.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Mooring"
+      parameters: []
+      tags:
+        - mooring
+components:
+  schemas:
+    Mooring:
+      title: Mooring
+      type: object
+      examples:
+        - id: string
+          number: string
+          max_vessel_length: 0
+          lower_water_depth: 0
+          location:
+            harbour: string
+            bay: string
+            island: string
+            name: string
+          price: 0
+          type: pole
+          last_inspection: string
+          block_weight: 0
+          auth0: string
+          status: verified
+      description: ""
+      properties:
+        id:
+          type: string
+          readOnly: true
+        number:
+          type: string
+          readOnly: true
+        max_vessel_length:
+          type: number
+        lower_water_depth:
+          type: number
+        location:
+          type: object
+          properties:
+            harbour:
+              type: string
+            bay:
+              type: string
+            island:
+              type: string
+            name:
+              type: string
+          required:
+            - name
+        price:
+          type: number
+        type:
+          type: string
+          enum:
+            - pole
+            - swing
+        last_inspection:
+          type: string
+        block_weight:
+          type: number
+        auth0:
+          type: string
+        status:
+          type: string
+          enum:
+            - verified
+            - toBeVerified
+      required:
+        - id
+        - number
+        - max_vessel_length
+        - lower_water_depth
+        - price
+        - type
+        - last_inspection
+        - block_weight
+        - auth0
+        - status
+  responses:
+    "400":
+      description: 400 Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                default: Bad Request
+                readOnly: true
+    "401":
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                default: 401 Unauthorized
+                readOnly: true
+    "404":
+      description: 404 Not Found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                default: Not Found
+                readOnly: true
+    "500":
+      description: 500 Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                default: Internal Server Error
+                readOnly: true
+tags:
+  - name: mooring
