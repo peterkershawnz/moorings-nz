@@ -1,8 +1,10 @@
-# Moorings NZ
+# A marketplace for moorings and marina berths
 
 ## Description
 
-This project is an online application that provides mooring data where accesible from around new Zealand.
+This project is to build an online marketplace where owners list their moorings and marina berths for short-term rentals.
+
+## The how
 
 Mooring data for the following locations has been obtained from [data.govt.nz](https://data.govt.nz/).
 
@@ -12,7 +14,9 @@ Mooring data for the following locations has been obtained from [data.govt.nz](h
 
 All mooring data is going to be stored in MongoDB and a Postgres database with the PostGIS extension. This will allow me to test the relational and non-relational databases side by side.
 
-Nextjs will be used for the front-end.
+Nextjs will be used for the front-end and Mapbox to display the moorings on a map.
+
+Using Stripe [Connect](https://stripe.com/docs/connect) to handle the payment system.
 
 The below requirement will increase and change as I process through the project.
 
@@ -51,3 +55,5 @@ Testing
 Client side
 
 - Using nextjs to build a front end
+- Mapbox for the map
+- Stipe Connect
