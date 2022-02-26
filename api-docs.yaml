@@ -168,6 +168,29 @@ paths:
         description: ""
       tags:
         - owner
+    patch:
+      summary: Update a owner
+      operationId: patch-owners-id
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Owner"
+        "400":
+          $ref: "#/components/responses/400"
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+      description: Update a single owner record
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Owner"
+        description: ""
 components:
   schemas:
     Mooring:
