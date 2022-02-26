@@ -18,7 +18,7 @@ Nextjs will be used for the front-end and Mapbox to display the moorings on a ma
 
 Using Stripe [Connect](https://stripe.com/docs/connect) to handle the payment system.
 
-The below requirement will increase and change as I process through the project.
+The below requirement will increase and change as I progress through the project.
 
 ## Part A
 
