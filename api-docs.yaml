@@ -387,6 +387,8 @@ components:
             coordinates:
               - 0
       description: ""
+      x-tags:
+        - mooring
       properties:
         id:
           type: string
@@ -412,11 +414,16 @@ components:
         price:
           type: string
         location:
-          type: string
-        bay:
-          type: string
-        island:
-          type: string
+          type: object
+          properties:
+            name:
+              type: string
+            bay:
+              type: string
+            island:
+              type: string
+            harbour:
+              type: string
         geometry:
           type: object
           required:
@@ -442,8 +449,6 @@ components:
         - block_weight
         - location
         - geometry
-      x-tags:
-        - mooring
     Owner:
       title: Owner
       type: object
@@ -452,10 +457,28 @@ components:
         - id: string
           auth0: string
           moorings:
-            - string
-          stripe_account: string
-          stripe_status: details_enabled
+            - id: string
+              number: string
+              max_vessel_length: 0
+              lower_water_depth: 0
+              type_of: pole
+              last_inspection_date: string
+              block_weight: 0
+              owner_id: string
+              price: string
+              location: string
+              bay: string
+              island: string
+              geometry:
+                type: string
+                coordinates:
+                  - 0
+          stripe_account:
+            id: string
+            status: charges_enabled
           created_date: string
+      x-tags:
+        - owner
       properties:
         id:
           type: string
@@ -465,23 +488,28 @@ components:
         moorings:
           type: array
           items:
-            type: string
+            $ref: "#/components/schemas/Mooring"
         stripe_account:
-          type: string
-        stripe_status:
-          type: string
-          enum:
-            - details_enabled
-            - charges_enabled
-            - not_started
+          type: object
+          required:
+            - id
+            - status
+          properties:
+            id:
+              type: string
+            status:
+              type: string
+              enum:
+                - charges_enabled
+                - details_submitted
+                - not_started
         created_date:
           type: string
           readOnly: true
       required:
+        - id
         - auth0
-        - created_date
-      x-tags:
-        - owner
+        - stripe_account
     booking:
       type: object
       title: booking
@@ -492,10 +520,10 @@ components:
           end_date: string
           user_id: string
           created_date: string
-          mooring_id: string
-          mooring_number: string
-          mooring_owner_id: string
-          "": string
+          mooring:
+            id: string
+            number: string
+            owner_id: string
       x-tags:
         - booking
       properties:
@@ -511,20 +539,25 @@ components:
         created_date:
           type: string
           readOnly: true
-        mooring_id:
-          type: string
-        mooring_number:
-          type: string
-        mooring_owner_id:
-          type: string
+        mooring:
+          required:
+            - id
+            - number
+            - owner_id
+          type: object
+          properties:
+            id:
+              type: string
+            number:
+              type: string
+            owner_id:
+              type: string
       required:
         - start_date
         - end_date
         - user_id
         - created_date
-        - mooring_id
-        - mooring_number
-        - mooring_owner_id
+        - mooring
     User:
       title: User
       type: object
@@ -535,9 +568,15 @@ components:
         - id: string
           auth0: string
           bookings:
-            - string
-          mooring_favorites:
-            - string
+            - id: string
+              start_date: string
+              end_date: string
+              user_id: string
+              created_date: string
+              mooring:
+                id: string
+                number: string
+                owner_id: string
           created_date: string
       properties:
         id:
@@ -549,11 +588,7 @@ components:
         bookings:
           type: array
           items:
-            type: string
-        mooring_favorites:
-          type: array
-          items:
-            type: string
+            $ref: "#/components/schemas/booking"
         created_date:
           type: string
           readOnly: true
