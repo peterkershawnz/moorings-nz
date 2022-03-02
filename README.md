@@ -12,7 +12,7 @@ Mooring data for the following locations has been obtained from [data.govt.nz](h
 - Auckland
 - Marlbourgh
 
-All mooring data is going to be stored in a Postgres database with the PostGIS extension.
+All mooring data is going to be stored in a MongoDB database.
 
 Nextjs will be used for the front-end and Mapbox to display the moorings on a map.
 
@@ -31,8 +31,6 @@ Design an API to the OpenAPI Specification.
 
 Database Schema Design
 
-- dbdiagram.io used for Postgres
-
 ## Part C
 
 Data reconstruction
@@ -41,18 +39,21 @@ Data reconstruction
 
 ## Part D
 
-Build the API
-
-- A mooring endpoint to be created and I will use the repository design pattern to allow me to swap put the databases.
-- Using Nodejs
+- Using docker create a new Postgres database and create the tables
 
 ## Part E
+
+Build the API
+
+-
+
+## Part F
 
 Testing
 
 - Jest to be used to create suitable unit, integration and end to end tests
 
-## Part F
+## Part G
 
 Client side
 
