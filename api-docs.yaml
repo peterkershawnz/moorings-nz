@@ -201,6 +201,8 @@ paths:
         "500":
           $ref: "#/components/responses/500"
       description: Removes a owner record
+      tags:
+        - owner
   /bookings:
     post:
       summary: Create a booking
@@ -304,7 +306,8 @@ paths:
         required: true
     get:
       summary: Get a user
-      tags: []
+      tags:
+        - user
       responses:
         "200":
           description: OK
@@ -371,21 +374,18 @@ components:
           number: string
           max_vessel_length: 0
           lower_water_depth: 0
-          location:
-            harbour: string
-            bay: string
-            island: string
-            name: string
           type_of: pole
           last_inspection_date: string
           block_weight: 0
+          owner_id: string
+          price: string
+          location: string
+          bay: string
+          island: string
           geometry:
             type: string
             coordinates:
               - 0
-          owner:
-            id: string
-          price: string
       description: ""
       properties:
         id:
@@ -398,19 +398,6 @@ components:
           type: number
         lower_water_depth:
           type: number
-        location:
-          type: object
-          properties:
-            harbour:
-              type: string
-            bay:
-              type: string
-            island:
-              type: string
-            name:
-              type: string
-          required:
-            - name
         type_of:
           type: string
           enum:
@@ -420,6 +407,16 @@ components:
           type: string
         block_weight:
           type: number
+        owner_id:
+          type: string
+        price:
+          type: string
+        location:
+          type: string
+        bay:
+          type: string
+        island:
+          type: string
         geometry:
           type: object
           required:
@@ -435,10 +432,6 @@ components:
                 type: number
               readOnly: true
           readOnly: true
-        owner_id:
-          type: string
-        price:
-          type: string
       required:
         - id
         - number
@@ -447,7 +440,10 @@ components:
         - type_of
         - last_inspection_date
         - block_weight
+        - location
         - geometry
+      x-tags:
+        - mooring
     Owner:
       title: Owner
       type: object
@@ -455,12 +451,10 @@ components:
       examples:
         - id: string
           auth0: string
-          stripe:
-            account: string
-            status: details_enabled
           moorings:
-            - name: string
-              verified: not_verified
+            - string
+          stripe_account: string
+          stripe_status: details_enabled
           created_date: string
       properties:
         id:
@@ -468,37 +462,26 @@ components:
           readOnly: true
         auth0:
           type: string
-        stripe:
-          type: object
-          properties:
-            account:
-              type: string
-            status:
-              type: string
-              enum:
-                - details_enabled
-                - charges_enabled
-                - not_started
         moorings:
           type: array
           items:
-            type: object
-            properties:
-              name:
-                type: string
-              verified:
-                type: string
-                enum:
-                  - not_verified
-                  - verified
-              id:
-                type: string
+            type: string
+        stripe_account:
+          type: string
+        stripe_status:
+          type: string
+          enum:
+            - details_enabled
+            - charges_enabled
+            - not_started
         created_date:
           type: string
           readOnly: true
       required:
         - auth0
         - created_date
+      x-tags:
+        - owner
     booking:
       type: object
       title: booking
@@ -507,11 +490,14 @@ components:
         - id: string
           start_date: string
           end_date: string
-          mooring_id: string
-          mooring_number: string
-          owner_id: string
           user_id: string
           created_date: string
+          mooring_id: string
+          mooring_number: string
+          mooring_owner_id: string
+          "": string
+      x-tags:
+        - booking
       properties:
         id:
           type: string
@@ -520,27 +506,39 @@ components:
           type: string
         end_date:
           type: string
-        mooring_id:
-          type: string
-        mooring_number:
-          type: string
-        owner_id:
-          type: string
         user_id:
           type: string
         created_date:
           type: string
           readOnly: true
+        mooring_id:
+          type: string
+        mooring_number:
+          type: string
+        mooring_owner_id:
+          type: string
       required:
         - start_date
         - end_date
+        - user_id
+        - created_date
         - mooring_id
         - mooring_number
-        - owner_id
+        - mooring_owner_id
     User:
       title: User
       type: object
       description: Mooring user model
+      x-tags:
+        - user
+      examples:
+        - id: string
+          auth0: string
+          bookings:
+            - string
+          mooring_favorites:
+            - string
+          created_date: string
       properties:
         id:
           type: string
@@ -550,7 +548,8 @@ components:
           readOnly: true
         bookings:
           type: array
-          items: {}
+          items:
+            type: string
         mooring_favorites:
           type: array
           items:
@@ -561,8 +560,6 @@ components:
       required:
         - auth0
         - created_date
-      x-tags:
-        - user
   responses:
     "400":
       description: 400 Bad Request

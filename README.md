@@ -12,7 +12,7 @@ Mooring data for the following locations has been obtained from [data.govt.nz](h
 - Auckland
 - Marlbourgh
 
-All mooring data is going to be stored in MongoDB and a Postgres database with the PostGIS extension. This will allow me to test the relational and non-relational databases side by side.
+All mooring data is going to be stored in a Postgres database with the PostGIS extension.
 
 Nextjs will be used for the front-end and Mapbox to display the moorings on a map.
 
