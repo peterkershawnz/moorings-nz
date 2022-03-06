@@ -1,47 +1,35 @@
-import dbConnect from "../../lib/dbConnect";
-import Mooring from "../../models/Mooring";
+import dbConnect from "../../../lib/dbConnect";
+import repository from "./repository";
+
 
 export default async function handler(req, res) {
   const {
     method,
-    query: { lat = 174.199461, lng = -35.226427, date, available },
+    query: { lat = 174.199461, lng = -35.226427, from, to },
   } = req;
 
   await dbConnect();
 
   if (method === "GET") {
 
-    const pipeline = [
-      {
-        '$geoNear': {
-          'near': {
-            'type': 'Point',
-            'coordinates': [
-              parseFloat(lat), parseFloat(lng)
-            ]
-          },
-          'key': 'geometry.coordinates',
-          'maxDistance': 1000,
-          'distanceField': 'dist.calculated',
-          'includeLocs': 'dist.location'
-        }
-      }, {
-        '$lookup': {
-          'from': 'bookings',
-          'localField': '_id',
-          'foreignField': 'mooring_id',
-          'as': 'bookings'
-        }
-      }, {
-        '$limit': 1000
+    if (from && !to || !from && to) {
+      res.status(400).json({ success: false, message: "Bad request" })
+    }
+
+    if (from && to) {
+      try {
+        const moorings = await repository.getMooringsByLocationAndDates(lat, lng, from, to);
+        res.status(200).json({ success: true, data: moorings });
+      } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
       }
-    ];
+    }
 
     try {
-      const moorings = await Mooring.aggregate(pipeline);
+      const moorings = await repository.getMooringsByLocation(location);
       res.status(200).json({ success: true, data: moorings });
     } catch (error) {
-      res.status(400).json({ success: false, message: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 }
