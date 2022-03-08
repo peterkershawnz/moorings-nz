@@ -1,8 +1,16 @@
 import dbConnect from "../../../lib/dbConnect";
-import repository from "./repository";
+import repository from "../repository";
+import Joi from "joi";
+import validate from "../../../lib/middlewares/validation";
 
+const schema = Joi.object({
+  lat: Joi.number().required(),
+  lng: Joi.number().required(),
+  from: Joi.date().min('now'),
+  to: Joi.date().greater(Joi.ref('from')),
+});
 
-export default async function handler(req, res) {
+export default validate({ query: schema }, async function handler(req, res) {
   const {
     method,
     query: { lat = 174.199461, lng = -35.226427, from, to },
@@ -11,10 +19,6 @@ export default async function handler(req, res) {
   await dbConnect();
 
   if (method === "GET") {
-
-    if (from && !to || !from && to) {
-      res.status(400).json({ success: false, message: "Bad request" })
-    }
 
     if (from && to) {
       try {
@@ -26,10 +30,10 @@ export default async function handler(req, res) {
     }
 
     try {
-      const moorings = await repository.getMooringsByLocation(location);
+      const moorings = await repository.getMooringsByLocation(lat, lng);
       res.status(200).json({ success: true, data: moorings });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
   }
-}
+});

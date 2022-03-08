@@ -7,7 +7,7 @@ info:
     email: p.kershaw4@gmail.com
   description: Moorings and marina berths marketplace API.
 servers:
-  - url: "http://localhost:5001"
+  - url: "http://localhost:3000/api"
 paths:
   /moorings:
     get:
@@ -25,41 +25,27 @@ paths:
           $ref: "#/components/responses/500"
       operationId: get-moorings
       description: Returns moorings based on location.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: number
-            examples:
-              example-1:
-                value:
-                  - 173.96973990960998
-                  - -35.217635807305435
-                  - 173.9786233858673
-                  - -35.20473254052142
-          application/xml:
-            schema:
-              type: object
-              properties: {}
-        description: |-
-          Requires the latitude and longitude within the bounds of a rectangle. 
-
-          The format is an array with bottom left coordinates then upper right coordinates [
-              173.96973990960998, -35.217635807305435, 173.9786233858673, -35.20473254052142,
-          ]
       parameters:
-        - schema:
-            type: boolean
-          in: query
-          name: available
-          description: only show moorings available
         - schema:
             type: string
           in: query
-          name: date
-          description: only show available moorings on this date
+          name: from
+          description: "date from "
+        - schema:
+            type: number
+          in: query
+          name: to
+          description: date to
+        - schema:
+            type: number
+          in: query
+          name: lat
+          description: send the users current location
+        - schema:
+            type: number
+          in: query
+          name: lng
+          description: send the users current location
       tags:
         - mooring
   "/moorings/{id}":
@@ -139,6 +125,11 @@ paths:
       description: Create a new owner record
       tags:
         - owner
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Owner"
   "/owners/{id}":
     parameters:
       - schema:
@@ -153,6 +144,10 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Owner"
         "400":
           $ref: "#/components/responses/404"
         "401":
@@ -377,15 +372,20 @@ components:
           type_of: pole
           last_inspection_date: string
           block_weight: 0
-          owner_id: string
           price: string
-          location: string
-          bay: string
-          island: string
+          location:
+            name: string
+            bay: string
+            island: string
+            harbour: string
+            region: string
           geometry:
             type: string
             coordinates:
               - 0
+          Owner:
+            id: string
+            mooring_verified: string
       description: ""
       x-tags:
         - mooring
@@ -409,8 +409,6 @@ components:
           type: string
         block_weight:
           type: number
-        owner_id:
-          type: string
         price:
           type: string
         location:
@@ -423,6 +421,8 @@ components:
             island:
               type: string
             harbour:
+              type: string
+            region:
               type: string
         geometry:
           type: object
@@ -439,6 +439,13 @@ components:
                 type: number
               readOnly: true
           readOnly: true
+        Owner:
+          type: object
+          properties:
+            id:
+              type: string
+            mooring_verified:
+              type: string
       required:
         - id
         - number
@@ -455,6 +462,7 @@ components:
       description: Mooring and marina berths owners data model
       examples:
         - id: string
+          name: string
           auth0: string
           moorings:
             - id: string
@@ -464,18 +472,20 @@ components:
               type_of: pole
               last_inspection_date: string
               block_weight: 0
-              owner_id: string
               price: string
-              location: string
-              bay: string
-              island: string
+              location:
+                name: string
+                bay: string
+                island: string
+                harbour: string
+                region: string
               geometry:
                 type: string
                 coordinates:
                   - 0
-          stripe_account:
-            id: string
-            status: charges_enabled
+              Owner:
+                id: string
+                mooring_verified: string
           created_date: string
       x-tags:
         - owner
@@ -483,45 +493,33 @@ components:
         id:
           type: string
           readOnly: true
+        name:
+          type: string
         auth0:
           type: string
         moorings:
           type: array
           items:
             $ref: "#/components/schemas/Mooring"
-        stripe_account:
-          type: object
-          required:
-            - id
-            - status
-          properties:
-            id:
-              type: string
-            status:
-              type: string
-              enum:
-                - charges_enabled
-                - details_submitted
-                - not_started
+          readOnly: true
         created_date:
           type: string
           readOnly: true
       required:
         - id
+        - name
         - auth0
-        - stripe_account
     booking:
       type: object
       title: booking
       description: Mooring booking model
       examples:
         - id: string
-          start_date: string
-          end_date: string
+          from: string
+          to: string
           user_id: string
           created_date: string
           mooring:
-            id: string
             number: string
             owner_id: string
       x-tags:
@@ -530,9 +528,9 @@ components:
         id:
           type: string
           readOnly: true
-        start_date:
+        from:
           type: string
-        end_date:
+        to:
           type: string
         user_id:
           type: string
@@ -540,23 +538,23 @@ components:
           type: string
           readOnly: true
         mooring:
+          type: object
           required:
             - id
             - number
             - owner_id
-          type: object
           properties:
             id:
               type: string
+              writeOnly: true
             number:
               type: string
             owner_id:
               type: string
       required:
-        - start_date
-        - end_date
+        - from
+        - to
         - user_id
-        - created_date
         - mooring
     User:
       title: User
@@ -566,15 +564,15 @@ components:
         - user
       examples:
         - id: string
+          name: string
           auth0: string
           bookings:
             - id: string
-              start_date: string
-              end_date: string
+              from: string
+              to: string
               user_id: string
               created_date: string
               mooring:
-                id: string
                 number: string
                 owner_id: string
           created_date: string
@@ -582,17 +580,20 @@ components:
         id:
           type: string
           readOnly: true
+        name:
+          type: string
         auth0:
           type: string
-          readOnly: true
         bookings:
           type: array
           items:
             $ref: "#/components/schemas/booking"
+          readOnly: true
         created_date:
           type: string
           readOnly: true
       required:
+        - name
         - auth0
         - created_date
   responses:

@@ -60,3 +60,4 @@ Client side
 - Using nextjs to build a front end
 - Mapbox for the map
 - Stipe Connect
+- Auth0 for security
