@@ -8,9 +8,13 @@ const OwnerSchema = mongoose.Schema(
         name: {
             type: String,
         },
+        mooring_number: [
+            String
+        ],
         created_date: {
             type: Date,
         },
+
     },
     {
         toJSON: {

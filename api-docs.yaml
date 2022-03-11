@@ -366,56 +366,99 @@ components:
       type: object
       examples:
         - id: string
-          number: string
-          max_vessel_length: 0
-          lower_water_depth: 0
-          type_of: pole
-          last_inspection_date: string
-          block_weight: 0
-          price: string
+          properties:
+            number: string
+            max_vessel_length: 0
+            type: pole
+            current_inspection: toBeConfirmed
+            block_weight: 0
+            price: string
+            buoy_colour: string
+            last_inspection: string
+            next_inspection: string
+            is_stern_tied: toBeConfirmed
+            club_mooring: true
+            depth:
+              mean_high_water: 0
+              mean_low_water_springs: 0
+              mean_sea_level: 0
           location:
-            name: string
             bay: string
             island: string
             harbour: string
             region: string
+            area: string
+          Owner:
+            id: string
+            mooring_verified: string
+            ownership_verified: verified
           geometry:
             type: string
             coordinates:
               - 0
-          Owner:
-            id: string
-            mooring_verified: string
       description: ""
       x-tags:
         - mooring
       properties:
         id:
           type: string
-          readOnly: true
-        number:
-          type: string
-          readOnly: true
-        max_vessel_length:
-          type: number
-        lower_water_depth:
-          type: number
-        type_of:
-          type: string
-          enum:
-            - pole
-            - swing
-        last_inspection_date:
-          type: string
-        block_weight:
-          type: number
-        price:
-          type: string
+        properties:
+          type: object
+          properties:
+            number:
+              type: string
+              readOnly: true
+            max_vessel_length:
+              type: number
+            type:
+              type: string
+              enum:
+                - pole
+                - MM4 Swing Mooring
+            current_inspection:
+              enum:
+                - toBeConfirmed
+                - "yes"
+                - "no"
+              type: boolean
+            block_weight:
+              type: number
+            price:
+              type: string
+            buoy_colour:
+              type: string
+            last_inspection:
+              type: string
+            next_inspection:
+              type: string
+            is_stern_tied:
+              enum:
+                - toBeConfirmed
+                - "yes"
+                - "no"
+              type: boolean
+            club_mooring:
+              type: boolean
+            depth:
+              type: object
+              properties:
+                mean_high_water:
+                  type: number
+                mean_low_water_springs:
+                  type: number
+                mean_sea_level:
+                  type: number
+          required:
+            - number
+            - max_vessel_length
+            - type
+            - current_inspection
+            - block_weight
+            - price
+            - depth
         location:
           type: object
           properties:
-            name:
-              type: string
             bay:
               type: string
             island:
@@ -424,6 +467,23 @@ components:
               type: string
             region:
               type: string
+            area:
+              type: string
+        Owner:
+          type: object
+          properties:
+            id:
+              type: string
+            mooring_verified:
+              type: string
+            ownership_verified:
+              type: string
+              enum:
+                - verified
+                - submitted
+                - notVerified
+          required:
+            - ownership_verified
         geometry:
           type: object
           required:
@@ -439,21 +499,7 @@ components:
                 type: number
               readOnly: true
           readOnly: true
-        Owner:
-          type: object
-          properties:
-            id:
-              type: string
-            mooring_verified:
-              type: string
       required:
-        - id
-        - number
-        - max_vessel_length
-        - lower_water_depth
-        - type_of
-        - last_inspection_date
-        - block_weight
         - location
         - geometry
     Owner:
@@ -462,7 +508,6 @@ components:
       description: Mooring and marina berths owners data model
       examples:
         - id: string
-          name: string
           auth0: string
           moorings:
             - id: string
@@ -493,8 +538,6 @@ components:
         id:
           type: string
           readOnly: true
-        name:
-          type: string
         auth0:
           type: string
         moorings:
@@ -507,7 +550,6 @@ components:
           readOnly: true
       required:
         - id
-        - name
         - auth0
     booking:
       type: object
@@ -520,6 +562,7 @@ components:
           user_id: string
           created_date: string
           mooring:
+            id: string
             number: string
             owner_id: string
       x-tags:
@@ -546,7 +589,6 @@ components:
           properties:
             id:
               type: string
-              writeOnly: true
             number:
               type: string
             owner_id:
@@ -573,6 +615,7 @@ components:
               user_id: string
               created_date: string
               mooring:
+                id: string
                 number: string
                 owner_id: string
           created_date: string
@@ -584,6 +627,7 @@ components:
           type: string
         auth0:
           type: string
+          readOnly: true
         bookings:
           type: array
           items:
@@ -594,7 +638,6 @@ components:
           readOnly: true
       required:
         - name
-        - auth0
         - created_date
   responses:
     "400":
