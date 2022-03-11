@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 
 const BookingSchema = mongoose.Schema(
   {
-    start_date: {
+    from: {
       type: Date,
     },
-    end_date: {
+    to: {
       type: Date,
     },
     user_id: {

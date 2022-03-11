@@ -2,6 +2,7 @@ import Mooring from "../../models/Mooring";
 import Booking from "../../models/Booking";
 import User from "../../models/User";
 import Owner from "../../models/Owner";
+const { ObjectID } = require('mongodb');
 
 const getMooringsByLocation = async (lat, lng) => {
 
@@ -11,19 +12,19 @@ const getMooringsByLocation = async (lat, lng) => {
                 'near': {
                     'type': 'Point',
                     'coordinates': [
-                        parseFloat(lat), parseFloat(lng)
+                        parseInt(lat), parseInt(lng)
                     ]
                 },
                 'key': 'geometry.coordinates',
-                'maxDistance': 1000,
+                'maxDistance': 5000,
                 'distanceField': 'dist.calculated',
                 'includeLocs': 'dist.location'
             }
         }, {
             '$lookup': {
                 'from': 'bookings',
-                'localField': '_id',
-                'foreignField': 'mooring_id',
+                'localField': 'properties.mooring_number',
+                'foreignField': 'mooring.number',
                 'as': 'bookings'
             }
         }, {
@@ -63,10 +64,33 @@ const createUser = async (userDate) => {
     }
 }
 
-const createOwner = async (userDate) => {
-    // to be tested
+const createOwner = async (data) => {
     try {
-        const owner = await Owner.create({ ...userDate, created_date: new Date() });
+        const owner = await Owner.create({ ...data, created_date: new Date() });
+        return owner;
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+const getOwner = async (id) => {
+    const pipeline = [
+        {
+            '$match': {
+                '_id': ObjectID(id)
+            }
+        }, {
+            '$lookup': {
+                'from': 'moorings',
+                'localField': 'mooring_number',
+                'foreignField': 'properties.number',
+                'as': 'users_moorings'
+            }
+        }
+    ];
+    try {
+        const owner = await Owner.aggregate(pipeline);
+        // const owner = await Owner.aggregate(pipeline);
         return owner;
     } catch (error) {
         throw new Error(error)
@@ -78,5 +102,6 @@ module.exports = {
     getMooringsByLocationAndDates,
     createBooking,
     createUser,
-    createOwner
+    createOwner,
+    getOwner
 }

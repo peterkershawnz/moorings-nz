@@ -4,8 +4,8 @@ import Joi from "joi";
 import validate from "../../../lib/middlewares/validation";
 
 const schema = Joi.object({
-  lat: Joi.number().required(),
-  lng: Joi.number().required(),
+  lat: Joi.string(),
+  lng: Joi.string(),
   from: Joi.date().min('now'),
   to: Joi.date().greater(Joi.ref('from')),
 });
