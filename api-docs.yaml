@@ -180,6 +180,14 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Owner"
+          application/xml:
+            schema:
+              type: object
+              properties: {}
+          multipart/form-data:
+            schema:
+              type: object
+              properties: {}
         description: ""
       tags:
         - owner
@@ -390,7 +398,6 @@ components:
             area: string
           Owner:
             id: string
-            mooring_verified: string
             ownership_verified: verified
           geometry:
             type: string
@@ -416,10 +423,6 @@ components:
                 - pole
                 - MM4 Swing Mooring
             current_inspection:
-              enum:
-                - toBeConfirmed
-                - "yes"
-                - "no"
               type: boolean
             block_weight:
               type: number
@@ -432,10 +435,6 @@ components:
             next_inspection:
               type: string
             is_stern_tied:
-              enum:
-                - toBeConfirmed
-                - "yes"
-                - "no"
               type: boolean
             club_mooring:
               type: boolean
@@ -474,8 +473,6 @@ components:
           properties:
             id:
               type: string
-            mooring_verified:
-              type: string
             ownership_verified:
               type: string
               enum:
@@ -508,29 +505,40 @@ components:
       description: Mooring and marina berths owners data model
       examples:
         - id: string
-          auth0: string
           moorings:
             - id: string
-              number: string
-              max_vessel_length: 0
-              lower_water_depth: 0
-              type_of: pole
-              last_inspection_date: string
-              block_weight: 0
-              price: string
+              properties:
+                number: string
+                max_vessel_length: 0
+                type: pole
+                current_inspection: toBeConfirmed
+                block_weight: 0
+                price: string
+                buoy_colour: string
+                last_inspection: string
+                next_inspection: string
+                is_stern_tied: toBeConfirmed
+                club_mooring: true
+                depth:
+                  mean_high_water: 0
+                  mean_low_water_springs: 0
+                  mean_sea_level: 0
               location:
-                name: string
                 bay: string
                 island: string
                 harbour: string
                 region: string
+                area: string
+              Owner:
+                id: string
+                ownership_verified: verified
               geometry:
                 type: string
                 coordinates:
                   - 0
-              Owner:
-                id: string
-                mooring_verified: string
+          auth0: string
+          mooring_number:
+            - string
           created_date: string
       x-tags:
         - owner
@@ -538,19 +546,25 @@ components:
         id:
           type: string
           readOnly: true
-        auth0:
-          type: string
         moorings:
           type: array
           items:
             $ref: "#/components/schemas/Mooring"
           readOnly: true
+        auth0:
+          type: string
+          readOnly: true
+        mooring_number:
+          type: array
+          items:
+            type: string
         created_date:
           type: string
           readOnly: true
       required:
         - id
         - auth0
+        - mooring_number
     booking:
       type: object
       title: booking
