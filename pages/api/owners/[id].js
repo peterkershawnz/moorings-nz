@@ -26,12 +26,28 @@ export default async function handler(req, res) {
 
     if (method === "PATCH") {
         try {
-            // continue from here. need to update the function to be a full aggregate pipeline to check if mooring already in the owners array
+            // First check that the mooring exists
+            const mooringExists = await repository.checkMooringExists(mooring_number);
+            if (mooringExists.length === 0) {
+                return res.status(404).json({ Umessage: "Unable to locate a mooring with those details." })
+            }
+
+            // Second check if claimeded by this owner
+            const mooringClaimed = await repository.checkMooringIsAvailable(mooring_number);
+            if (mooringClaimed.auth0 === 'auth0pass1') {
+                return res.status(400).json({ message: "You have already claimed this mooring" })
+            }
+            if (mooringClaimed) {
+                return res.status(404).json({ message: "This mooring has been claimed already" })
+            }
+
+            // Third check if the owner id is correct and exists
             const updateOwner = await repository.updateOwnerById(id, mooring_number);
             if (!updateOwner) {
                 return res.status(404).json({ success: false, message: "No owner found" })
             }
 
+            // Checks that the update happened
             if (updateOwner.modifiedCount === 0) {
                 return res.status(400).json({ success: false, message: "Unable to update" });
             }

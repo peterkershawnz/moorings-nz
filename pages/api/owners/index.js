@@ -17,21 +17,25 @@ export default validate({ body: schema }, async function handler(req, res) {
 
     if (method === "POST") {
         try {
-            const checkOwnerExists = await repository.getOwnerByAuth0({ auth0: 'auth0pass' });
-            if (checkOwnerExists) {
-                return res.status(400).json({ success: false, message: "owner already exists" })
+            // First check if the owner account has already been created_date.
+            const isOwner = await repository.checkOwnerExists({ auth0: 'auth0pass3' });
+            if (isOwner) {
+                return res.status(400).json({ message: "A user account already exists" })
             }
 
-            const checkMooring = await repository.getMooringByNumber(mooring_number);
-            if (!checkMooring) {
-                return res.status(404).json({ success: false, message: "No mooring located" });
+            // Second check that the mooring exists and no one else has claimed it.
+            const mooringExists = await repository.checkMooringExists(mooring_number);
+            if (mooringExists.length === 0) {
+                return res.status(404).json({ Umessage: "Unable to locate a mooring with those details." })
             }
 
-            if (checkMooring.mooring_owners.length > 0) {
-                return res.status(400).json({ success: false, message: "This mooring has already been claimed, please contact us if this is incorrect" })
+            const mooringClaimed = await repository.checkMooringIsAvailable(mooring_number);
+            if (mooringClaimed) {
+                return res.status(404).json({ message: "This mooring has been claimed already" })
             }
 
-            const createOwner = await repository.createOwner({ mooring_number, auth0: 'auth0pass' });
+            // Third create the new owner and add in the mooring number
+            const createOwner = await repository.createOwner({ mooring_number, auth0: 'auth0pass3' });
             res.status(201).json({ success: true, data: createOwner });
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });
