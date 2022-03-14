@@ -19,7 +19,13 @@ export default (validate({ body: schema }, async function handler(req, res) {
     if (method === "POST") {
 
         try {
-            const createUser = await repository.createUser({ ...req.body, auth0: "test" });
+            // First check that the user hasn't already created a account based on auth0
+            const checkUserExists = await repository.checkUserExists({ auth0: 'auth0pass' });
+            if (checkUserExists.length > 0) {
+                return res.status(400).json({ message: "User account already exists" })
+            }
+            // Second create the account
+            const createUser = await repository.createUser({ ...req.body, auth0: "auth0pass" });
             res.status(201).json({ success: true, data: createUser });
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });
