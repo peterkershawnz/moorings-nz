@@ -18,24 +18,32 @@ export default validate({ body: schema }, async function handler(req, res) {
     if (method === "POST") {
         try {
             // First check if the owner account has already been created_date.
-            const isOwner = await repository.checkOwnerExists({ auth0: 'auth0pass3' });
+            const isOwner = await repository.checkOwnerExists({ auth0: 'auth0pass8' });
             if (isOwner) {
                 return res.status(400).json({ message: "A user account already exists" })
             }
 
             // Second check that the mooring exists and no one else has claimed it.
-            const mooringExists = await repository.checkMooringExists(mooring_number);
-            if (mooringExists.length === 0) {
-                return res.status(404).json({ Umessage: "Unable to locate a mooring with those details." })
+            const mooring = await repository.checkMooringOwnership(mooring_number);
+            if (!mooring.mooringExists) {
+                return res.status(404).json({ success: false, message: "Unable to locate a mooring with those details." })
             }
 
-            const mooringClaimed = await repository.checkMooringIsAvailable(mooring_number);
-            if (mooringClaimed) {
-                return res.status(404).json({ message: "This mooring has been claimed already" })
+            if (mooring.hasBeenClaimed) {
+                return res.status(400).json({ success: false, message: "This mooring has been claimed by another person" })
             }
 
             // Third create the new owner and add in the mooring number
-            const createOwner = await repository.createOwner({ mooring_number, auth0: 'auth0pass3' });
+            const createOwner = await repository.createOwner({ mooring_number, auth0: 'auth0pass8' });
+            if (!createOwner) {
+                return res.status(400).json({ message: "Unable to create an account at this time" })
+            }
+
+            // Forth update the moorings to add the ownership status
+            const updateMooring = await repository.updateMooringOwnership(mooring._id, createOwner._id);
+            if (!updateMooring) {
+                return res.status(400).json({ success: false, message: "Unable to update" })
+            }
             res.status(201).json({ success: true, data: createOwner });
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });
