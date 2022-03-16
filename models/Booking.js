@@ -11,6 +11,9 @@ const BookingSchema = mongoose.Schema(
     user_id: {
       type: String,
     },
+    auth0: {
+      type: String,
+    },
     created_date: {
       type: Date,
     },

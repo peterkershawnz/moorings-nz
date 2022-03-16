@@ -8,6 +8,7 @@ const schema = Joi.object({
     from: Joi.date().min('now').required(),
     to: Joi.date().greater(Joi.ref('from')).required(),
     user_id: Joi.string().required(),
+    auth0: Joi.string().required(),
     mooring: Joi.object().keys({ id: Joi.string().required(), number: Joi.string().required(), owner_id: Joi.string().required() }).required(),
 });
 

@@ -68,6 +68,15 @@ const getMooringByNumber = async (number) => {
     }
 }
 
+const updateMooringOwnership = async (mooring_id, owners_id) => {
+    try {
+        const mooring = await Mooring.findByIdAndUpdate(mooring_id, { 'properties.owner.id': owners_id });
+        return mooring;
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
 const createBooking = async (bookingData) => {
     // to be tested
     try {
@@ -97,8 +106,41 @@ const createUser = async (userData) => {
 }
 
 const getUserById = async (id) => {
+
+    const pipeline = [
+        {
+            '$match': {
+                '_id': ObjectId(id)
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'bookings',
+                'localField': 'auth0',
+                'foreignField': 'auth0',
+                'as': 'user_bookings'
+            }
+        }, {
+            '$project': {
+                'auth0': 1,
+                'name': 1,
+                'created_date': 1,
+                'user_bookings': {
+                    '$filter': {
+                        'input': '$user_bookings',
+                        'as': 'bookings',
+                        'cond': {
+                            '$gt': [
+                                '$$bookings.from', new Date()
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    ];
     try {
-        const user = await User.findById(id);
+        const user = await User.aggregate(pipeline);
         return user;
     } catch (error) {
         throw new Error(error)
@@ -130,22 +172,89 @@ const checkMooringIsAvailable = async (mooring_number) => {
     ];
     try {
         const checkMooringAvailable = await Owner.aggregate(pipeline);
-        return checkMooringAvailable[0]
+        return checkMooringAvailable
     } catch (error) {
         throw new Error(error)
     }
 
 }
 
-const checkMooringExists = async (mooring_number) => {
+const checkMooringOwnershipById = async (id, mooring_number) => {
+    const pipeline = [
+        {
+            '$match': {
+                'properties.number': mooring_number
+            }
+        }, {
+            '$project': {
+                'mooringExists': {
+                    '$cond': {
+                        'if': {
+                            '$eq': [
+                                '$properties.number', mooring_number
+                            ]
+                        },
+                        'then': true,
+                        'else': false
+                    }
+                },
+                'hasBeenClaimed': {
+                    '$cond': { 'if': { '$eq': ['$properties.owner.id', null] }, 'then': false, 'else': true }
+                },
+                'belongsToOwner': {
+                    '$cond': {
+                        'if': {
+                            '$eq': [
+                                '$properties.owner.id', id
+                            ]
+                        },
+                        'then': true,
+                        'else': false
+                    }
+                }
+            }
+        }
+    ];
     try {
-        const mooring = await Mooring.find({ 'properties.number': mooring_number })
-        return mooring;
+        const mooring = await Mooring.aggregate(pipeline);
+        return mooring[0];
     } catch (error) {
         throw new Error(error)
     }
 }
 
+const checkMooringOwnership = async (mooring_number) => {
+    const pipeline = [
+        {
+            '$match': {
+                'properties.number': mooring_number
+            }
+        }, {
+            '$project': {
+                'mooringExists': {
+                    '$cond': {
+                        'if': {
+                            '$eq': [
+                                '$properties.number', mooring_number
+                            ]
+                        },
+                        'then': true,
+                        'else': false
+                    }
+                },
+                'hasBeenClaimed': {
+                    '$cond': { 'if': { '$eq': ['$properties.owner.id', null] }, 'then': false, 'else': true }
+                }
+            }
+        }
+    ];
+    try {
+        const mooring = await Mooring.aggregate(pipeline);
+        return mooring[0];
+    } catch (error) {
+        throw new Error(error)
+    }
+}
 const checkOwnerExists = async ({ auth0 }) => {
     // need to update with auth0
     const pipeline = [
@@ -175,25 +284,6 @@ const createOwner = async ({ mooring_number, auth0 }) => {
 }
 
 const getOwnerById = async (id) => {
-    const testPipeline = [
-        {
-            '$match': {
-                '_id': ObjectId(id)
-            }
-        }, {
-            '$lookup': {
-                'from': 'moorings',
-                'localField': 'mooring_number',
-                'foreignField': 'properties.number',
-                'as': 'users_moorings'
-            }
-        }, {
-            '$group': {
-                '_id': 'properties.number'
-            }
-        }
-    ];
-
     const pipeline = [
         {
             '$match': {
@@ -205,6 +295,31 @@ const getOwnerById = async (id) => {
                 'localField': 'mooring_number',
                 'foreignField': 'properties.number',
                 'as': 'owner_moorings'
+            }
+        }, {
+            '$lookup': {
+                'from': 'bookings',
+                'localField': 'mooring_number',
+                'foreignField': 'mooring.number',
+                'as': 'mooring_bookings'
+            }
+        }, {
+            '$project': {
+                'auth0': 1,
+                'created_date': 1,
+                'mooring_number': 1,
+                'owner_moorings': 1,
+                'mooring_bookings': {
+                    '$filter': {
+                        'input': '$mooring_bookings',
+                        'as': 'moorings',
+                        'cond': {
+                            '$gt': [
+                                '$$moorings.from', new Date('Tue, 15 Mar 2022 02:19:06 GMT')
+                            ]
+                        }
+                    }
+                }
             }
         }
     ];
@@ -226,9 +341,8 @@ const getOwnerByAuth0 = async ({ auth0 }) => {
 }
 
 const updateOwnerById = async (id, mooring_number) => {
-
+    console.log(id)
     try {
-
         const owner = await Owner.updateOne({ _id: ObjectId(id) }, { '$push': { 'mooring_number': mooring_number } });
         return owner;
     } catch (error) {
@@ -249,6 +363,7 @@ module.exports = {
     getMooringsByLocation,
     getMooringsByLocationAndDates,
     getMooringByNumber,
+    updateMooringOwnership,
     createBooking,
     checkUserExists,
     createUser,
@@ -261,5 +376,6 @@ module.exports = {
     updateOwnerById,
     deleteOwnerById,
     checkMooringIsAvailable,
-    checkMooringExists
+    checkMooringOwnership,
+    checkMooringOwnershipById
 }
