@@ -68,10 +68,27 @@ const getMooringByNumber = async (number) => {
     }
 }
 
-const updateMooringOwnership = async (mooring_id, owners_id) => {
+const updateMooringOwner = async (mooring_id, owners_id) => {
     try {
         const mooring = await Mooring.findByIdAndUpdate(mooring_id, { 'properties.owner.id': owners_id });
         return mooring;
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+const removeMooringOwnerId = async (owner) => {
+    try {
+
+        const promises = owner.owner_moorings.map(async mooring => {
+            const updatedMooring = await Mooring.findByIdAndUpdate(mooring._id, { 'properties.owner.id': null });
+            return updatedMooring
+        })
+
+        const updatedMooring = await Promise.all(promises)
+        return updatedMooring;
+
+
     } catch (error) {
         throw new Error(error)
     }
@@ -274,6 +291,26 @@ const checkOwnerExists = async ({ auth0 }) => {
 
 }
 
+const checkOwnersMoorings = async (id) => {
+    const pipeline = [
+        {
+            '$lookup': {
+                'from': 'moorings',
+                'localField': '_id',
+                'foreignField': 'properties.owner.id',
+                'as': 'owners_moorings'
+            }
+        }
+    ];
+    try {
+        const ownersMoorings = await Moorings.aggregate(pipeline);
+        return ownersMoorings;
+    } catch (error) {
+        throw new Error(error)
+    }
+
+}
+
 const createOwner = async ({ mooring_number, auth0 }) => {
     try {
         const owner = await Owner.create({ mooring_number, auth0, created_date: new Date() });
@@ -325,7 +362,7 @@ const getOwnerById = async (id) => {
     ];
     try {
         const owner = await Owner.aggregate(pipeline);
-        return owner;
+        return owner[0];
     } catch (error) {
         throw new Error(error)
     }
@@ -352,7 +389,8 @@ const updateOwnerById = async (id, mooring_number) => {
 
 const deleteOwnerById = async (id) => {
     try {
-        const deleteOwner = await Owner.deleteOne({ '_id': ObjectId(id) });
+        const deleteOwner = await Owner.deleteOne({ _id: ObjectId(id) });
+
         return deleteOwner;
     } catch (error) {
         throw new Error(error)
@@ -363,7 +401,8 @@ module.exports = {
     getMooringsByLocation,
     getMooringsByLocationAndDates,
     getMooringByNumber,
-    updateMooringOwnership,
+    updateMooringOwner,
+    removeMooringOwnerId,
     createBooking,
     checkUserExists,
     createUser,
@@ -377,5 +416,6 @@ module.exports = {
     deleteOwnerById,
     checkMooringIsAvailable,
     checkMooringOwnership,
-    checkMooringOwnershipById
+    checkMooringOwnershipById,
+    checkOwnersMoorings
 }

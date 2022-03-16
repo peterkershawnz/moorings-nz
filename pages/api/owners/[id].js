@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         try {
 
             const owner = await repository.getOwnerById(id);
-            if (owner.length === 0) {
+            if (!owner) {
                 return res.status(404).json({ success: false, message: "No owner found" })
             }
             res.status(200).json({ success: true, data: owner });
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
             }
 
             // Fouth update the moorings to add the ownership status
-            const updateMooring = await repository.updateMooringOwnership(mooring._id, id);
+            const updateMooring = await repository.updateMooringOwner(mooring._id, id);
             if (!updateMooring) {
                 return res.status(400).json({ success: false, message: "Unable to update mooring" })
             }
@@ -66,11 +66,25 @@ export default async function handler(req, res) {
 
     if (method === "DELETE") {
         try {
-            const owner = await repository.deleteOwnerById(id);
-            if (owner.deletedCount === 0) {
-                return res.status(404).json({ success: false, message: "No owner found" })
+            // First get the owners account
+            const owner = await repository.getOwnerById(id);
+            if (!owner) {
+                return res.status(404).json({ success: false, message: "No owner located" });
             }
-            res.status(200).json({ success: true, data: owner });
+
+            // Second check and remove any moorings the owner has assigned
+            const updateMooring = await repository.removeMooringOwnerId(owner);
+            if (!updateMooring) {
+                return res.status(400).json({ success: false, message: "Unable to update the moorings" })
+            }
+
+
+            const deleteOwner = await repository.deleteOwnerById(id);
+            if (deleteOwner.deletedCount === 0) {
+                return res.status(400).json({ success: false, message: "No owner found" })
+            }
+
+            res.status(200).json({ success: true, data: deleteOwner });
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });
         }

@@ -18,7 +18,7 @@ export default validate({ body: schema }, async function handler(req, res) {
     if (method === "POST") {
         try {
             // First check if the owner account has already been created_date.
-            const isOwner = await repository.checkOwnerExists({ auth0: 'auth0pass8' });
+            const isOwner = await repository.checkOwnerExists({ auth0: 'auth0pass' });
             if (isOwner) {
                 return res.status(400).json({ message: "A user account already exists" })
             }
@@ -34,13 +34,13 @@ export default validate({ body: schema }, async function handler(req, res) {
             }
 
             // Third create the new owner and add in the mooring number
-            const createOwner = await repository.createOwner({ mooring_number, auth0: 'auth0pass8' });
+            const createOwner = await repository.createOwner({ mooring_number, auth0: 'auth0pass' });
             if (!createOwner) {
                 return res.status(400).json({ message: "Unable to create an account at this time" })
             }
 
             // Forth update the moorings to add the ownership status
-            const updateMooring = await repository.updateMooringOwnership(mooring._id, createOwner._id);
+            const updateMooring = await repository.updateMooringOwner(mooring._id, createOwner._id);
             if (!updateMooring) {
                 return res.status(400).json({ success: false, message: "Unable to update" })
             }
